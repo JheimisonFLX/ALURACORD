@@ -15,6 +15,12 @@ Inicializando o yarn no repositorio
 Instalando o Next, React, React-Dom
 2- yarn add next react react-dom
 
+Importando biblioteca de componetes
+2-1 yarn add @skynexui/components
+
+Importando  biblioteca na Page
+2-2 import { Box, Button, Text, TextField, Image } from '@skynexui/components';
+
 Ignorar pasta node para o github
 3- npx gitignore node
 
