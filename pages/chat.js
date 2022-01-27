@@ -1,33 +1,49 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
+import { createClient } from '@supabase/supabase-js'
 
-export default function ChatPage() {
+// Como fazer AJAX: https://medium.com/@omariosouto/entendendo-como-fazer-ajax-com-a-fetchapi-977ff20da3c6
+
+export default function ChatPage({ SUPABASE_ANON_KEY, SUPABASE_URL}) {
+
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     const [mensagem, setMensagem] = React.useState('');
     const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
 
-    /*
-    // Usuário
-    - Usuário digita no campo textarea
-    - Aperta enter para enviar
-    - Tem que adicionar o texto na listagem
-    
-    // Dev
-    - [X] Campo criado
-    - [X] Vamos usar o onChange usa o useState (ter if pra caso seja enter pra limpar a variavel)
-    - [X] Lista de mensagens 
-    */
+    React.useEffect(() => {
+        supabaseClient
+            .from('mensagens')
+            .select('*')
+            .order('id', { ascending: false })
+            .then(({ data }) => {
+                console.log('Dados da consulta:', data);
+                setListaDeMensagens(data);
+            });
+    }, []);
+
     function handleNovaMensagem(novaMensagem) {
         const mensagem = {
-            id: listaDeMensagens.length + 1,
-            de: 'jheimisonflx',
+            // id: listaDeMensagens.length + 1,
+            de: 'vanessametonini',
             texto: novaMensagem,
         };
 
-        setListaDeMensagens([
-            mensagem,
-            ...listaDeMensagens,
-        ]);
+        supabaseClient
+            .from('mensagens')
+            .insert([
+                // Tem que ser um objeto com os MESMOS CAMPOS que você escreveu no supabase
+                mensagem
+            ])
+            .then(({ data }) => {
+                console.log('Criando mensagem: ', data);
+                setListaDeMensagens([
+                    data[0],
+                    ...listaDeMensagens,
+                ]);
+            });
+
         setMensagem('');
     }
 
@@ -174,7 +190,7 @@ function MessageList(props) {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/jheimisonflx.png`}
+                                src={`https://github.com/${mensagem.de}.png`}
                             />
                             <Text tag="strong">
                                 {mensagem.de}
@@ -197,3 +213,15 @@ function MessageList(props) {
         </Box>
     )
 }
+
+
+export const getServerSideProps = async () => {
+    const { SUPABASE_ANON_KEY, SUPABASE_URL } = process.env;
+
+    return {
+        props: {
+            SUPABASE_ANON_KEY,
+            SUPABASE_URL,
+        },
+    };
+};
